@@ -1,8 +1,33 @@
-/**
- * Authorization helpers — implement when Feature auth is specified.
- * See .cursor/rules/auth-patterns.mdc and security.mdc.
- */
+import db from "../models/index.js";
 
-export function authenticate() {
-  throw new Error("authenticate() not implemented — add per feature auth spec");
-}
+/**
+ * Validates Bearer token against the sessions table and sets req.user.
+ */
+export const authenticate = async (req, res, next) => {
+  const authHeader = req.get("Authorization") || "";
+  const [scheme, token] = authHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return res.status(401).send({ message: "Unauthorized! No token provided." });
+  }
+
+  try {
+    const session = await db.session.findOne({
+      where: { token },
+      include: [{ model: db.user, as: "user" }],
+    });
+
+    if (!session || !session.user || session.expirationDate < new Date()) {
+      return res.status(401).send({
+        message: "Unauthorized! Invalid or expired session.",
+      });
+    }
+
+    req.user = { id: session.user.id, role: session.user.role };
+    return next();
+  } catch {
+    return res.status(401).send({
+      message: "Unauthorized! Invalid or expired session.",
+    });
+  }
+};
