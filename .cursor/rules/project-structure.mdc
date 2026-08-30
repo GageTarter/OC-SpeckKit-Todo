@@ -43,9 +43,9 @@ todo-speckit/
 
 ## Environment Variables
 Backend (`backend/.env`):
-*   `DB_HOST`, `DB_USER`, `DB_PW`, `DB_NAME` — MySQL connection (default database: `todospeckit-db`).
+*   `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PW`, `DB_NAME` — MySQL connection (default database: `todospeckit-db`). `PORT` is the Express listen port, not MySQL.
 *   `AUTH_SECRET` — JWT signing secret (required in production).
-*   `PORT` — default `3200`.
+*   `PORT` — Express API port; default `3200`.
 *   `NODE_ENV` — `development` | `production` | `test`.
 *   `SEQUELIZE_SYNC_ALTER` — set `true` to run `sync({ alter: true })` in dev only.
 
