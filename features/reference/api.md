@@ -1,6 +1,6 @@
 # API Reference
 
-**Status:** Feature 1 auth + session-scoped list read.
+**Status:** Feature 1 auth + Feature 2 list CRUD.
 
 API mount path: `/todo` (`backend/server.js`). Authenticated routes require `Authorization: Bearer <token>`.
 
@@ -12,7 +12,10 @@ API mount path: `/todo` (`backend/server.js`). Authenticated routes require `Aut
 | `POST` | `/todo/register` | No | Create account and return session payload |
 | `POST` | `/todo/login` | No | Authenticate with username + password |
 | `POST` | `/todo/logout` | Yes | Revoke the current session token |
-| `GET` | `/todo/lists` | Yes | Return lists owned by `req.user.id` (empty until Feature 2 writes lists) |
+| `GET` | `/todo/lists` | Yes | Lists owned by `req.user.id`, name A–Z |
+| `POST` | `/todo/lists` | Yes | Create a list owned by `req.user.id` |
+| `PUT` | `/todo/lists/:listId` | Yes | Rename an owned list |
+| `DELETE` | `/todo/lists/:listId` | Yes | Delete an owned list |
 
 ## Auth success payload (`201` register / `200` login)
 
@@ -30,6 +33,28 @@ API mount path: `/todo` (`backend/server.js`). Authenticated routes require `Aut
 
 Password hashes are never included.
 
+## List create body
+
+```json
+{ "name": "Groceries" }
+```
+
+`userId` in the body is ignored. Ownership is always `req.user.id`.
+
+## List success (`200` / `201`)
+
+```json
+{
+  "id": 1,
+  "name": "Groceries",
+  "userId": 42,
+  "createdAt": "2026-07-02T12:00:00.000Z",
+  "updatedAt": "2026-07-02T12:00:00.000Z"
+}
+```
+
+Delete returns `200` with `{ "message": "List deleted." }`.
+
 ## Errors
 
 `{ "message": "Human-readable explanation." }`
@@ -40,10 +65,13 @@ Password hashes are never included.
 | Duplicate email | `400` | `Email is already registered.` |
 | Invalid credentials | `401` | `Invalid username or password.` |
 | Missing/invalid/expired token | `401` | Message includes `Unauthorized` |
+| Empty list name | `400` | `List name is required.` |
+| List name longer than 100 characters | `400` | `List name must be 100 characters or fewer.` |
+| List not found or not owned | `404` | `List with id=<id> not found.` |
 
 ## Feature provenance
 
 | Area | Introduced |
 |------|------------|
 | Auth register / login / logout | Feature 1 |
-| `GET /todo/lists` (read, owner-scoped) | Feature 1 |
+| List CRUD (`GET/POST/PUT/DELETE /todo/lists`) | Feature 2 |

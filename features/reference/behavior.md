@@ -12,9 +12,13 @@
 | Client stores session under `localStorage` key `user`; axios sends `Authorization: Bearer <token>` | `Utils` + `services.js` | Feature 1 |
 | On API `401` / unauthorized message, clear `user` and route to login | axios interceptor | Feature 1 |
 | Unauthenticated visitors cannot stay on protected routes; signed-in users hitting login go home | `router.beforeEach` | Feature 1 |
-| `GET /todo/lists` returns only rows with `userId = req.user.id` | `list.controller` findAll | Feature 1 |
-| Auth screens and Feature 1 home use full-screen layout (**no MenuBar**); home shows welcome + **Sign out** | `App.vue`, `Home.vue` | Feature 1 |
 | Registration email: required + `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`; invalid format **"Enter a valid email address."** | `emailRules` | Feature 1 |
+| List queries and writes scoped with `userId: req.user.id`; create ignores body `userId` | `list.controller` + `getAccessibleListOrNull` | Feature 2; ADR-0002 |
+| Cross-user list access → **`404`**, never `403` | `PUT`/`DELETE /todo/lists/:listId` | Feature 2; ADR-0002 |
+| Lists returned **alphabetically by name** | `findAll` `order: name ASC` | Feature 2 |
+| List names trimmed; empty rejected; max **100** characters | Controller + Dashboard form | Feature 2 |
+| Dashboard empty state: **"No lists yet. Create your first list."** | `Dashboard.vue` | Feature 2 |
+| `MenuBar` (name + **Sign out**) on signed-in routes; hidden on login/register | `App.vue` | Feature 2 |
 
 These files answer: *"What rules does the app enforce right now?"*  
 They do **not** authorize new scope — implement only from `features/feature-*.md`.

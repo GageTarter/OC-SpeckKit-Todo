@@ -1,6 +1,6 @@
 # Data Model Reference
 
-**Status:** Feature 1 schema (users, sessions) plus `lists` for owner-scoped reads.
+**Status:** Feature 1 users/sessions + Feature 2 lists.
 
 ## Tables
 
@@ -31,8 +31,8 @@
 | Field | Type | Rules |
 |-------|------|-------|
 | `id` | INTEGER PK | Auto-increment |
-| `name` | STRING | Required |
-| `userId` | INTEGER FK | Required; references `users.id` |
+| `name` | STRING(100) | Required; trimmed; max 100 chars |
+| `userId` | INTEGER FK | Required; references `users.id`; set from `req.user.id` on create; never changes |
 | `createdAt` | DATE | Sequelize timestamps |
 | `updatedAt` | DATE | Sequelize timestamps |
 
@@ -48,4 +48,4 @@
 | Area | Introduced |
 |------|------------|
 | `users`, `sessions` | Feature 1 |
-| `lists` (table + read scope) | Feature 1 |
+| `lists` CRUD | Feature 2 |

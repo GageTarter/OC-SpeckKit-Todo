@@ -29,5 +29,5 @@ They do **not** authorize new scope — implement only from `features/feature-*.
 
 | Area | Introduced |
 |------|------------|
-| Auth, sessions, protected home | Feature 1 |
-| Owner-scoped `GET /todo/lists` | Feature 1 |
+| Auth, sessions | Feature 1 |
+| Lists CRUD + Dashboard lists view + MenuBar | Feature 2 |
