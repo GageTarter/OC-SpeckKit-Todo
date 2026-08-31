@@ -1,6 +1,6 @@
 # API Reference
 
-**Status:** Feature 1 auth + Feature 2 lists + Feature 3 todos.
+**Status:** Features 1–4 (auth, lists, todos, profile).
 
 API mount path: `/todo` (`backend/server.js`). Authenticated routes require `Authorization: Bearer <token>`.
 
@@ -20,6 +20,8 @@ API mount path: `/todo` (`backend/server.js`). Authenticated routes require `Aut
 | `POST` | `/todo/lists/:listId/todos` | Yes | Add a todo to an owned list |
 | `PUT` | `/todo/todos/:id` | Yes | Update title and/or `completed` |
 | `DELETE` | `/todo/todos/:id` | Yes | Delete an owned todo |
+| `GET` | `/todo/users/:id` | Yes | Own profile only |
+| `PUT` | `/todo/users/:id` | Yes | Update own profile; password optional |
 
 ## Auth success payload (`201` register / `200` login)
 
@@ -81,6 +83,39 @@ Delete returns `200` with `{ "message": "List deleted." }`.
 }
 ```
 
+Delete todo returns `200` with `{ "message": "Todo deleted." }`.
+
+## Profile update body
+
+```json
+{
+  "fName": "Jane",
+  "lName": "Doe",
+  "email": "jane@example.com",
+  "username": "jdoe",
+  "password": "newpassword123"
+}
+```
+
+`password` is optional. Role is not editable.
+
+## Profile success (`200`)
+
+```json
+{
+  "id": 42,
+  "fName": "Jane",
+  "lName": "Doe",
+  "email": "jane@example.com",
+  "username": "jdoe",
+  "role": "worker",
+  "createdAt": "2026-07-02T12:00:00.000Z",
+  "updatedAt": "2026-07-02T12:05:00.000Z"
+}
+```
+
+Password hashes are never included.
+
 ## Errors
 
 `{ "message": "Human-readable explanation." }`
@@ -97,6 +132,9 @@ Delete returns `200` with `{ "message": "List deleted." }`.
 | Empty todo title | `400` | `Todo title is required.` |
 | Todo title longer than 255 characters | `400` | `Todo title must be 255 characters or fewer.` |
 | Todo not found or not owned | `404` | `Todo with id=<id> not found.` |
+| User not found or not self | `404` | `User with id=<id> not found.` |
+| Profile password too short | `400` | `Password must be at least 8 characters.` |
+| Profile missing first name | `400` | `First name is required.` |
 
 ## Feature provenance
 
@@ -105,3 +143,4 @@ Delete returns `200` with `{ "message": "List deleted." }`.
 | Auth register / login / logout | Feature 1 |
 | List CRUD (`GET/POST/PUT/DELETE /todo/lists`) | Feature 2 |
 | Todo items (`/todo/lists/:listId/todos`, `/todo/todos/:id`) | Feature 3 |
+| Profile `GET/PUT /todo/users/:id` | Feature 4 |
