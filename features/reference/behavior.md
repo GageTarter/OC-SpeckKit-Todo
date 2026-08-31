@@ -19,6 +19,13 @@
 | List names trimmed; empty rejected; max **100** characters | Controller + Dashboard form | Feature 2 |
 | Dashboard empty state: **"No lists yet. Create your first list."** | `Dashboard.vue` | Feature 2 |
 | `MenuBar` (name + **Sign out**) on signed-in routes; hidden on login/register | `App.vue` | Feature 2 |
+| Todo queries/writes scoped by `userId`; parent list must be owned | `todo.controller` + `getAccessibleTodoOrNull` / `getAccessibleListOrNull` | Feature 3; ADR-0002 |
+| Cross-user todo or parent list → **`404`**, never `403` | Todo API | Feature 3; ADR-0002 |
+| Todos ordered **incomplete first**, then `createdAt` ascending | `findAllForList` | Feature 3 |
+| New todos default `completed: false`; titles trimmed; max **255** | Create + Dashboard form | Feature 3 |
+| Deleting a list **cascades** to its todos | `List hasMany Todo` `onDelete: CASCADE` | Feature 3 |
+| List-items empty state: **"No todos in this list yet."** | `Dashboard.vue` items dialog | Feature 3 |
+| **+ Add Item** only inside the list-items dialog | `Dashboard.vue` | Feature 3 |
 
 These files answer: *"What rules does the app enforce right now?"*  
 They do **not** authorize new scope — implement only from `features/feature-*.md`.
