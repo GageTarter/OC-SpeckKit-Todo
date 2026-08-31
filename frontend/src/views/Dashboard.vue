@@ -2,6 +2,12 @@
 import { computed, onMounted, ref } from "vue";
 import ListServices from "../services/listServices.js";
 import TodoServices from "../services/todoServices.js";
+import {
+  formatDueDate,
+  isTodoOverdue,
+  optionalDueDateRules,
+  toDateInputValue,
+} from "../config/validation.js";
 
 const lists = ref([]);
 const loading = ref(false);
@@ -26,7 +32,9 @@ const deleteItemOpen = ref(false);
 const addItemForm = ref(null);
 const editItemForm = ref(null);
 const newTitle = ref("");
+const newDueDate = ref("");
 const editTitle = ref("");
+const editDueDate = ref("");
 const activeTodo = ref(null);
 
 const nameRules = [(value) => !!value?.trim() || "List name is required."];
@@ -162,6 +170,7 @@ function closeItems() {
 
 function openAddItem() {
   newTitle.value = "";
+  newDueDate.value = "";
   itemsError.value = "";
   addItemOpen.value = true;
 }
@@ -173,13 +182,17 @@ async function createTodo() {
   }
 
   itemsError.value = "";
+  const payload = { title: newTitle.value.trim() };
+  if (newDueDate.value) {
+    payload.dueDate = newDueDate.value;
+  }
+
   try {
-    const res = await TodoServices.create(activeList.value.id, {
-      title: newTitle.value.trim(),
-    });
+    const res = await TodoServices.create(activeList.value.id, payload);
     todos.value = sortTodos([...todos.value, res.data]);
     addItemOpen.value = false;
     newTitle.value = "";
+    newDueDate.value = "";
   } catch (err) {
     itemsError.value = err.response?.data?.message || "Unable to create todo.";
   }
@@ -200,6 +213,7 @@ async function toggleComplete(todo, completed) {
 function openEditItem(todo) {
   activeTodo.value = todo;
   editTitle.value = todo.title;
+  editDueDate.value = toDateInputValue(todo.dueDate);
   itemsError.value = "";
   editItemOpen.value = true;
 }
@@ -214,6 +228,7 @@ async function saveTodoTitle() {
   try {
     const res = await TodoServices.update(activeTodo.value.id, {
       title: editTitle.value.trim(),
+      dueDate: editDueDate.value || null,
     });
     todos.value = sortTodos(
       todos.value.map((item) => (item.id === res.data.id ? res.data : item))
@@ -376,6 +391,12 @@ onMounted(loadLists);
               <v-list-item-title :class="{ 'text-decoration-line-through text-medium-emphasis': todo.completed }">
                 {{ todo.title }}
               </v-list-item-title>
+              <v-list-item-subtitle
+                v-if="todo.dueDate"
+                :class="{ 'text-error': isTodoOverdue(todo) }"
+              >
+                {{ formatDueDate(todo.dueDate) }}
+              </v-list-item-subtitle>
               <template #append>
                 <v-btn
                   icon
@@ -413,7 +434,13 @@ onMounted(loadLists);
         </v-card-item>
         <v-card-text>
           <v-form ref="addItemForm">
-            <v-text-field v-model="newTitle" label="Todo title" :rules="titleRules" />
+            <v-text-field v-model="newTitle" label="Todo title" :rules="titleRules" class="mb-2" />
+            <v-text-field
+              v-model="newDueDate"
+              label="Due date"
+              type="date"
+              :rules="optionalDueDateRules"
+            />
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -431,7 +458,13 @@ onMounted(loadLists);
         </v-card-item>
         <v-card-text>
           <v-form ref="editItemForm">
-            <v-text-field v-model="editTitle" label="Todo title" :rules="titleRules" />
+            <v-text-field v-model="editTitle" label="Todo title" :rules="titleRules" class="mb-2" />
+            <v-text-field
+              v-model="editDueDate"
+              label="Due date"
+              type="date"
+              :rules="optionalDueDateRules"
+            />
           </v-form>
         </v-card-text>
         <v-card-actions>

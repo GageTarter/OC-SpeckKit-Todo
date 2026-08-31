@@ -13,6 +13,17 @@ export default (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: false,
     },
+    dueDate: {
+      type: Sequelize.DATEONLY,
+      allowNull: true,
+      get() {
+        const raw = this.getDataValue("dueDate");
+        if (!raw) {
+          return null;
+        }
+        return String(raw).slice(0, 10);
+      },
+    },
     userId: {
       type: Sequelize.INTEGER,
       allowNull: false,

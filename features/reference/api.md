@@ -1,6 +1,6 @@
 # API Reference
 
-**Status:** Features 1–4 (auth, lists, todos, profile).
+**Status:** Features 1–5 (auth, lists, todos, profile, due dates).
 
 API mount path: `/todo` (`backend/server.js`). Authenticated routes require `Authorization: Bearer <token>`.
 
@@ -18,7 +18,7 @@ API mount path: `/todo` (`backend/server.js`). Authenticated routes require `Aut
 | `DELETE` | `/todo/lists/:listId` | Yes | Delete an owned list |
 | `GET` | `/todo/lists/:listId/todos` | Yes | Todos in an owned list (incomplete first, then `createdAt`) |
 | `POST` | `/todo/lists/:listId/todos` | Yes | Add a todo to an owned list |
-| `PUT` | `/todo/todos/:id` | Yes | Update title and/or `completed` |
+| `PUT` | `/todo/todos/:id` | Yes | Update title, `completed`, and/or `dueDate` |
 | `DELETE` | `/todo/todos/:id` | Yes | Delete an owned todo |
 | `GET` | `/todo/users/:id` | Yes | Own profile only |
 | `PUT` | `/todo/users/:id` | Yes | Update own profile; password optional |
@@ -64,10 +64,10 @@ Delete returns `200` with `{ "message": "List deleted." }`.
 ## Todo create body
 
 ```json
-{ "title": "Buy milk" }
+{ "title": "Buy milk", "dueDate": "2026-07-15" }
 ```
 
-`userId` and `listId` in the body are ignored.
+`dueDate` is optional (`YYYY-MM-DD`). Omit it or send `null` for no due date. `userId` and `listId` in the body are ignored.
 
 ## Todo success (`200` / `201`)
 
@@ -77,11 +77,14 @@ Delete returns `200` with `{ "message": "List deleted." }`.
   "listId": 1,
   "title": "Buy milk",
   "completed": false,
+  "dueDate": "2026-07-15",
   "userId": 42,
   "createdAt": "2026-07-02T12:05:00.000Z",
   "updatedAt": "2026-07-02T12:05:00.000Z"
 }
 ```
+
+`dueDate` is `null` when not set. `PUT` with `{ "dueDate": null }` clears it; omitting `dueDate` leaves the stored value unchanged.
 
 Delete todo returns `200` with `{ "message": "Todo deleted." }`.
 
@@ -132,6 +135,7 @@ Password hashes are never included.
 | Empty todo title | `400` | `Todo title is required.` |
 | Todo title longer than 255 characters | `400` | `Todo title must be 255 characters or fewer.` |
 | Todo not found or not owned | `404` | `Todo with id=<id> not found.` |
+| Invalid todo due date | `400` | `Due date must be a valid date in YYYY-MM-DD format.` |
 | User not found or not self | `404` | `User with id=<id> not found.` |
 | Profile password too short | `400` | `Password must be at least 8 characters.` |
 | Profile missing first name | `400` | `First name is required.` |
@@ -144,3 +148,4 @@ Password hashes are never included.
 | List CRUD (`GET/POST/PUT/DELETE /todo/lists`) | Feature 2 |
 | Todo items (`/todo/lists/:listId/todos`, `/todo/todos/:id`) | Feature 3 |
 | Profile `GET/PUT /todo/users/:id` | Feature 4 |
+| Optional todo `dueDate` | Feature 5 |

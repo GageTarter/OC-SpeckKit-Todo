@@ -7,7 +7,32 @@ import {
 
 const exports = {};
 
+const DATE_ONLY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const INVALID_DUE_DATE = "Due date must be a valid date in YYYY-MM-DD format.";
+
 const parseId = (value) => parseInt(value, 10);
+
+const parseDueDate = (value) => {
+  if (value === null || value === "") {
+    return { dueDate: null };
+  }
+
+  if (typeof value !== "string" || !DATE_ONLY_REGEX.test(value)) {
+    return { error: INVALID_DUE_DATE };
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return { error: INVALID_DUE_DATE };
+  }
+
+  return { dueDate: value };
+};
 
 const normalizeTitle = (raw) => {
   if (typeof raw !== "string") {
@@ -69,6 +94,15 @@ exports.createForList = async (req, res) => {
     return res.status(400).send({ message: parsed.error });
   }
 
+  let dueDate = null;
+  if (Object.prototype.hasOwnProperty.call(req.body, "dueDate")) {
+    const parsedDate = parseDueDate(req.body.dueDate);
+    if (parsedDate.error) {
+      return res.status(400).send({ message: parsedDate.error });
+    }
+    dueDate = parsedDate.dueDate;
+  }
+
   try {
     const list = await getAccessibleListOrNull(req, listId);
     if (!list) {
@@ -78,6 +112,7 @@ exports.createForList = async (req, res) => {
     const todo = await db.todo.create({
       title: parsed.title,
       completed: false,
+      dueDate,
       listId: list.id,
       userId: req.user.id,
     });
@@ -110,6 +145,14 @@ exports.update = async (req, res) => {
 
     if (Object.prototype.hasOwnProperty.call(req.body, "completed")) {
       todo.completed = Boolean(req.body.completed);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(req.body, "dueDate")) {
+      const parsedDate = parseDueDate(req.body.dueDate);
+      if (parsedDate.error) {
+        return res.status(400).send({ message: parsedDate.error });
+      }
+      todo.dueDate = parsedDate.dueDate;
     }
 
     await todo.save();

@@ -28,6 +28,9 @@
 | `MenuBar` profile dropdown (name, username, email, **Edit Profile**, **Log out**); no standalone **Sign out** | `MenuBar.vue` | Feature 4 |
 | Profile read/update only when `:id` equals `req.user.id`; else **404** | `getAccessibleUserOrNull` | Feature 4; ADR-0002 |
 | After profile save, refresh `localStorage` `user` and dispatch `user-logged-in` | `MenuBar.vue` | Feature 4 |
+| Optional todo `dueDate` (`YYYY-MM-DD` / `DATEONLY`); invalid → `400` | `todo.controller` | Feature 5 |
+| `PUT` `dueDate: null` clears; omit `dueDate` leaves stored value | `todo.controller` | Feature 5 |
+| Incomplete todos with `dueDate` before local today use overdue styling | `Dashboard.vue` + `isTodoOverdue` | Feature 5 |
 
 These files answer: *"What rules does the app enforce right now?"*  
 They do **not** authorize new scope — implement only from `features/feature-*.md`.
